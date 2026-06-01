@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Captures / outputs
+*.mp4
+*.avi
+*.mkv
+*.jpg
+*.jpeg
+*.png
+*.h264
+*.ts
+
+# Secrets
+.env
+.secrets
+ezviz_token.json
