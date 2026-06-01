@@ -16,12 +16,13 @@ import subprocess
 import sys
 
 # ================= CONFIGURATION =================
-USERNAME = "YOUR_EZVIZ_USERNAME"
-PASSWORD = "YOUR_EZVIZ_PASSWORD"
-REGION = "apiieu.ezvizlife.com"
-SERIAL = "YOUR_CAMERA_SERIAL"
-CHANNEL = 1
-PROXY_PORT = 8558
+import os
+USERNAME = os.environ.get("EZVIZ_USER", "YOUR_EZVIZ_USERNAME")
+PASSWORD = os.environ.get("EZVIZ_PASS", "YOUR_EZVIZ_PASSWORD")
+REGION = os.environ.get("EZVIZ_REGION", "apiieu.ezvizlife.com")
+SERIAL = os.environ.get("EZVIZ_SERIAL", "YOUR_CAMERA_SERIAL")
+CHANNEL = int(os.environ.get("EZVIZ_CHANNEL", "1"))
+PROXY_PORT = int(os.environ.get("EZVIZ_PROXY_PORT", "8558"))
 # =================================================
 
 

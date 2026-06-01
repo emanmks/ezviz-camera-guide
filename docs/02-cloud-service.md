@@ -53,6 +53,22 @@ Choose the endpoint matching where your EZVIZ account was registered:
 | Americas (USA) | `apiusa.ezvizlife.com` |
 | China mainland | `apichina.ezvizlife.com` |
 | Russia | `apirus.ezvizlife.com` |
+| Indonesia / Singapore | `apiisgp.ezvizlife.com` |
+
+> **Note:** If you use the wrong region, the API returns code `1100` with a redirect
+domain in `loginArea.apiDomain`. The example code handles this automatically.
+
+---
+
+## Authentication & MFA
+
+EZVIZ accounts with **MFA (two-factor authentication)** enabled will fail raw API
+login with code `6002` ("Hardware feature code verification failed").
+
+**Options:**
+1. Temporarily disable MFA in the EZVIZ mobile app (Settings > Account Security)
+2. Use `pyezvizapi` and provide the SMS/app verification code when prompted
+3. Create a dedicated API account without MFA for automation
 
 ---
 

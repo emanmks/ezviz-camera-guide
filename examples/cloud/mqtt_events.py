@@ -17,9 +17,10 @@ from pyezvizapi import EzvizClient
 from pyezvizapi.mqtt import MQTTClient
 
 # ================= CONFIGURATION =================
-USERNAME = "YOUR_EZVIZ_USERNAME"
-PASSWORD = "YOUR_EZVIZ_PASSWORD"
-REGION = "apiieu.ezvizlife.com"
+import os
+USERNAME = os.environ.get("EZVIZ_USER", "YOUR_EZVIZ_USERNAME")
+PASSWORD = os.environ.get("EZVIZ_PASS", "YOUR_EZVIZ_PASSWORD")
+REGION = os.environ.get("EZVIZ_REGION", "apiieu.ezvizlife.com")
 # =================================================
 
 

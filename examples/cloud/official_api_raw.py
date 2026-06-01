@@ -18,9 +18,10 @@ import requests
 import uuid
 
 # ================= CONFIGURATION =================
-USERNAME = "YOUR_EZVIZ_USERNAME"
-PASSWORD = "YOUR_EZVIZ_PASSWORD"
-REGION = "apiieu.ezvizlife.com"      # or apiusa.ezvizlife.com, apichina.ezvizlife.com
+import os
+USERNAME = os.environ.get("EZVIZ_USER", "YOUR_EZVIZ_USERNAME")
+PASSWORD = os.environ.get("EZVIZ_PASS", "YOUR_EZVIZ_PASSWORD")
+REGION = os.environ.get("EZVIZ_REGION", "apiieu.ezvizlife.com")      # or apiusa.ezvizlife.com, apichina.ezvizlife.com
 # =================================================
 
 BASE_URL = f"https://{REGION}"
@@ -33,8 +34,8 @@ def generate_feature_code() -> str:
     return hashlib.md5(mac_str.encode("utf-8")).hexdigest()
 
 
-def login() -> dict:
-    """Login to EZVIZ and return session info."""
+def login(base_url: str) -> tuple[dict, str]:
+    """Login to EZVIZ and return (session_info, base_url)."""
     feature_code = generate_feature_code()
     password_md5 = hashlib.md5(PASSWORD.encode("utf-8"), usedforsecurity=False).hexdigest()
 
@@ -54,7 +55,7 @@ def login() -> dict:
     }
 
     resp = requests.post(
-        f"{BASE_URL}/v3/users/login/v5",
+        f"{base_url}/v3/users/login/v5",
         headers=headers,
         data=payload,
         timeout=30,
@@ -62,7 +63,32 @@ def login() -> dict:
     resp.raise_for_status()
     data = resp.json()
 
-    if data.get("meta", {}).get("code") != 200:
+    meta_code = data.get("meta", {}).get("code")
+
+    # Handle region redirect (code 1100) — e.g. Indonesia -> apiisgp.ezvizlife.com
+    if meta_code == 1100:
+        redirect_domain = data.get("loginArea", {}).get("apiDomain")
+        if redirect_domain:
+            print(f"Redirecting to regional endpoint: {redirect_domain}")
+            base_url = f"https://{redirect_domain}"
+            resp = requests.post(
+                f"{base_url}/v3/users/login/v5",
+                headers=headers,
+                data=payload,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            meta_code = data.get("meta", {}).get("code")
+
+    if meta_code == 6002:
+        raise RuntimeError(
+            "Login failed: Hardware feature code verification failed (6002).\n"
+            "This usually means MFA is enabled on the account.\n"
+            "Either disable MFA in the EZVIZ app, or use pyezvizapi and provide an MFA code."
+        )
+
+    if meta_code != 200:
         raise RuntimeError(f"Login failed: {data}")
 
     login_data = data.get("loginSession", {})
@@ -72,7 +98,7 @@ def login() -> dict:
         "session_id": session_id,
         "rf_session_id": login_data.get("rfSessionId"),
         "feature_code": feature_code,
-    }
+    }, base_url
 
 
 def get_pagelist(session_id: str, feature_code: str) -> list:
@@ -108,7 +134,8 @@ def get_pagelist(session_id: str, feature_code: str) -> list:
 
 
 def main():
-    token_info = login()
+    global BASE_URL
+    token_info, BASE_URL = login(BASE_URL)
     devices = get_pagelist(token_info["session_id"], token_info["feature_code"])
 
     if not devices:
